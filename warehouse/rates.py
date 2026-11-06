@@ -1,11 +1,27 @@
 """Shipping rate calculations."""
 
+_ZONE_BASE = {"local": 5.0, "regional": 8.0}
+_SERVICE_SURCHARGE = {"standard": 0.0, "express": 7.0}
 
-def shipping_quote(weight_kg: float, zone: str) -> float:
-    """Quote standard shipping in dollars."""
+
+def shipping_quote(weight_kg: float, zone: str, service: str = "standard") -> float:
+    """Return a shipping quote in dollars.
+
+    Args:
+        weight_kg: Shipment weight; must be positive.
+        zone: Delivery zone — ``"local"`` or ``"regional"``.
+        service: Shipping tier — ``"standard"`` (default) or ``"express"``.
+            Express adds a flat $7 surcharge over the standard rate.
+
+    Raises:
+        ValueError: If *weight_kg* is not positive, *zone* is unrecognised,
+            or *service* is unrecognised.
+    """
     if weight_kg <= 0:
         raise ValueError("weight must be positive")
-    if zone not in {"local", "regional"}:
+    if zone not in _ZONE_BASE:
         raise ValueError("unknown zone")
-    base = 5.0 if zone == "local" else 8.0
+    if service not in _SERVICE_SURCHARGE:
+        raise ValueError("unknown service")
+    base = _ZONE_BASE[zone] + _SERVICE_SURCHARGE[service]
     return round(base + 1.5 * weight_kg, 2)
